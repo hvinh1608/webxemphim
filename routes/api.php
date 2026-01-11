@@ -52,6 +52,17 @@ Route::get('env-check', function () {
     ]);
 });
 
+// Simple debug route
+Route::get('debug-db', function () {
+    return response()->json([
+        'status' => 'DEBUG ROUTE WORKING',
+        'database_url' => env('DATABASE_URL') ?: 'NOT SET',
+        'db_connection' => config('database.default'),
+        'db_host' => config('database.connections.pgsql.host'),
+        'timestamp' => now()
+    ]);
+});
+
 // Debug database connection with detailed error
 Route::get('db-test', function () {
     try {
