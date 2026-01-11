@@ -33,14 +33,13 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-# ENV - Force use production config
+# ENV - Let Laravel auto-parse DATABASE_URL from Render
 RUN rm -f .env && \
     echo "APP_NAME=WebXemPhim" > .env && \
     echo "APP_ENV=production" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
     echo "APP_KEY=base64:SG3hJzVxK2mPvFc8dGbNqRwY5tL7pM9eA1iOuHkT6s=" >> .env && \
-    echo "APP_URL=https://webxemphim.onrender.com" >> .env && \
-    echo "DB_CONNECTION=pgsql" >> .env
+    echo "APP_URL=https://webxemphim.onrender.com" >> .env
 RUN php artisan key:generate
 
 # Clear all Laravel caches and force reload config
@@ -51,11 +50,16 @@ RUN php artisan cache:clear || true
 
 # Force database config to use environment variables
 RUN php artisan config:clear || true
-RUN rm -f bootstrap/cache/config-*.php || true
-RUN php artisan config:cache --force || true
+RUN rm -f bootstrap/cache/config-*.php bootstrap/cache/routes-*.php bootstrap/cache/views-*.php || true
 
-# Migrate database (ignore if database not ready)
-RUN php artisan migrate --force || true
+# Custom script to force parse DATABASE_URL
+RUN echo '#!/bin/bash' > /tmp/force-db-config.sh && \
+    echo 'php artisan config:cache' >> /tmp/force-db-config.sh && \
+    echo 'php artisan migrate --force || true' >> /tmp/force-db-config.sh && \
+    chmod +x /tmp/force-db-config.sh
+
+# Run the custom script
+RUN /tmp/force-db-config.sh || true
 
 EXPOSE 80
 CMD ["apache2-foreground"]
