@@ -4,7 +4,12 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'message' => 'WebXemPhim API Backend',
+        'status' => 'running',
+        'version' => '1.0.0',
+        'timestamp' => now()
+    ]);
 });
 Route::get('/verify', [AuthController::class, 'verifyEmail'])->name('verify.email');
 
@@ -33,7 +38,16 @@ Route::get('/test-google-config', function() {
     }
 });
 
-// Catch-all route để serve Vue.js app cho client-side routing
+// Catch-all route trả về JSON cho API paths
 Route::get('/{any}', function () {
-    return view('welcome');
+    return response()->json([
+        'error' => 'Route not found',
+        'message' => 'This is an API backend. Use /api/* endpoints.',
+        'available_endpoints' => [
+            'GET /api/test',
+            'GET /api/movies',
+            'GET /api/auth/google',
+            'GET /api/auth/facebook'
+        ]
+    ], 404);
 })->where('any', '.*');
