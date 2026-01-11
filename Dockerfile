@@ -58,8 +58,16 @@ RUN echo '#!/bin/bash' > /tmp/force-db-config.sh && \
     echo 'php artisan migrate --force || true' >> /tmp/force-db-config.sh && \
     chmod +x /tmp/force-db-config.sh
 
-# Run the custom script
-RUN /tmp/force-db-config.sh || true
+# Create startup script to force database config at runtime
+RUN echo '#!/bin/bash' > /usr/local/bin/force-db-config.sh && \
+    echo 'echo "Forcing database config..."' >> /usr/local/bin/force-db-config.sh && \
+    echo 'php artisan config:clear' >> /usr/local/bin/force-db-config.sh && \
+    echo 'php artisan config:cache' >> /usr/local/bin/force-db-config.sh && \
+    echo 'php artisan migrate --force || true' >> /usr/local/bin/force-db-config.sh && \
+    echo 'echo "Database config forced!"' >> /usr/local/bin/force-db-config.sh && \
+    chmod +x /usr/local/bin/force-db-config.sh
 
 EXPOSE 80
-CMD ["apache2-foreground"]
+
+# Run database config script before starting Apache
+CMD /usr/local/bin/force-db-config.sh && apache2-foreground
