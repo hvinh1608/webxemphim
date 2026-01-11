@@ -59,19 +59,20 @@ RUN php artisan config:cache && \
 EXPOSE 80
 
 # Create startup script
-RUN echo '#!/bin/bash
-echo "=== STARTING LARAVEL SERVER ==="
-echo "PHP Version: $(php --version | head -1)"
-echo "Laravel Version: $(php artisan --version 2>/dev/null || echo "Laravel not found")"
-echo "APP_ENV: $APP_ENV"
-echo "APP_KEY: ${APP_KEY:0:10}..."
-echo "DATABASE_URL: ${DATABASE_URL:0:20}..."
-echo "Working Directory: $(pwd)"
-echo "Files in /var/www/html/: $(ls -la)"
-echo "=== CHECKING ROUTES ==="
-php artisan route:list --path=api 2>/dev/null || echo "Route list failed"
-echo "=== STARTING APACHE ==="
-apache2-foreground' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
+RUN mkdir -p /usr/local/bin && \
+    echo '#!/bin/bash\n\
+echo "=== STARTING LARAVEL SERVER ===\n\
+echo \"PHP Version: $(php --version | head -1)\"\n\
+echo \"Laravel Version: $(php artisan --version 2>/dev/null || echo Laravel not found)\"\n\
+echo \"APP_ENV: $APP_ENV\"\n\
+echo \"APP_KEY: ${APP_KEY:0:10}...\"\n\
+echo \"DATABASE_URL: ${DATABASE_URL:0:20}...\"\n\
+echo \"Working Directory: $(pwd)\"\n\
+echo \"=== CHECKING ROUTES ===\"\n\
+php artisan route:list --path=api 2>/dev/null || echo \"Route list failed\"\n\
+echo \"=== STARTING APACHE ===\"\n\
+apache2-foreground' > /usr/local/bin/start.sh && \
+    chmod +x /usr/local/bin/start.sh
 
 # Start command
 CMD ["/usr/local/bin/start.sh"]
