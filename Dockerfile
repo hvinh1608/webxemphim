@@ -58,13 +58,9 @@ RUN php artisan config:cache && \
 # Expose port 80
 EXPOSE 80
 
-# Create simple startup script
-RUN echo '#!/bin/bash
-echo "Starting Laravel server..."
-echo "PHP Version: $(php --version | head -1)"
-echo "Laravel check: $(php artisan --version 2>/dev/null && echo OK || echo FAILED)"
-echo "Starting Apache..."
-apache2-foreground' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
+# Copy startup script
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
 # Start command
 CMD ["/usr/local/bin/start.sh"]
