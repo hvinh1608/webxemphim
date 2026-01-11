@@ -60,15 +60,8 @@ EXPOSE 80
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
-# Wait for database to be ready\n\
-echo "Waiting for database..."\n\
-until php artisan migrate:status > /dev/null 2>&1; do\n\
-    echo "Database not ready, waiting..."\n\
-    sleep 2\n\
-done\n\
-echo "Database ready, running migrations..."\n\
-php artisan migrate --force\n\
-echo "Starting Apache..."\n\
+echo "Starting Apache server..."\n\
+# Start Apache without waiting for database\n\
 apache2-foreground' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
 
 # Start command
