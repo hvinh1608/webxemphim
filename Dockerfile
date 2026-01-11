@@ -1,76 +1,56 @@
+# Use the official PHP 8.2 Apache image
 FROM php:8.2-apache
 
-# Enable Apache mod_rewrite
+# Enable required Apache modules
 RUN a2enmod rewrite
 
-# Install system dependencies
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
     libpng-dev \
-    libonig-dev \
-    libxml2-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     libzip-dev \
     libpq-dev \
-    zip \
     unzip \
-    nodejs \
-    npm
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql pdo_pgsql zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions for PostgreSQL and other requirements
-RUN docker-php-ext-install pdo pdo_pgsql pdo_mysql mbstring exif pcntl bcmath gd zip
-
-# Get latest Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files first for better caching
-COPY composer.json artisan ./
+# Copy package files first for better caching
+COPY composer.json composer.lock ./
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Copy application code explicitly
-COPY app/ ./app/
-COPY bootstrap/ ./bootstrap/
-COPY config/ ./config/
-COPY database/ ./database/
-COPY public/ ./public/
-COPY resources/ ./resources/
-COPY routes/ ./routes/
-COPY storage/ ./storage/
-COPY artisan ./
-COPY composer.json composer.lock ./
-COPY start.sh ./
+# Copy application code
+COPY . .
 
-# Copy existing application directory permissions
+# Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Create .env file from .env.example if it exists
-RUN if [ -f .env.example ]; then cp .env.example .env; fi
+# Create .env if it doesn't exist
+RUN cp .env.example .env 2>/dev/null || echo "APP_NAME=WebXemPhim\nAPP_ENV=production\nAPP_DEBUG=false\nAPP_KEY=\nDB_CONNECTION=pgsql\nLOG_CHANNEL=stack" > .env
 
-# Generate application key
+# Generate app key
 RUN php artisan key:generate
 
 # Clear and cache config
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+RUN php artisan config:cache 2>/dev/null || true
+RUN php artisan route:cache 2>/dev/null || true
 
 # Expose port 80
 EXPOSE 80
 
-# Copy startup script
-COPY start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
-
-# Start command
-CMD ["/usr/local/bin/start.sh"]
+# Simple startup command
+CMD ["apache2-foreground"]
