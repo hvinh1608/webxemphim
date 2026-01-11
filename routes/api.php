@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\MovieController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes (không cần auth)
@@ -57,26 +58,27 @@ Route::get('db-test', function () {
         // Test basic connection
         $pdo = DB::connection()->getPdo();
         return response()->json([
-            'database' => 'connected',
+            'status' => 'SUCCESS',
+            'message' => 'Database connected successfully!',
             'pdo_driver' => $pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
             'server_info' => $pdo->getAttribute(PDO::ATTR_SERVER_INFO),
-            'client_version' => $pdo->getAttribute(PDO::ATTR_CLIENT_VERSION)
+            'database_url' => env('DATABASE_URL') ? 'SET (' . strlen(env('DATABASE_URL')) . ' chars)' : 'NOT SET'
         ]);
     } catch (\Exception $e) {
         return response()->json([
-            'database' => 'error',
-            'error' => $e->getMessage(),
+            'status' => 'ERROR',
+            'error_message' => $e->getMessage(),
             'error_code' => $e->getCode(),
-            'db_config' => [
+            'database_url' => env('DATABASE_URL') ? 'SET (' . strlen(env('DATABASE_URL')) . ' chars)' : 'NOT SET',
+            'current_db_config' => [
                 'connection' => config('database.default'),
                 'host' => config('database.connections.pgsql.host'),
                 'port' => config('database.connections.pgsql.port'),
                 'database' => config('database.connections.pgsql.database'),
-                'username' => config('database.connections.pgsql.username'),
-                'charset' => config('database.connections.pgsql.charset'),
-                'sslmode' => config('database.connections.pgsql.sslmode')
-            ]
-        ], 500);
+                'username' => config('database.connections.pgsql.username')
+            ],
+            'fix_suggestion' => 'Check DATABASE_URL environment variable in Render'
+        ], 200); // Return 200 so we can see the error
     }
 });
 
