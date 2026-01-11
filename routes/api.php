@@ -103,6 +103,17 @@ Route::get('db-test', function () {
     }
 });
 
+// Test route for web routes (moved from web.php)
+Route::get('web-test', function () {
+    return response()->json([
+        'message' => 'WebXemPhim API Backend',
+        'status' => 'running',
+        'version' => '1.0.1',
+        'timestamp' => now(),
+        'route_type' => 'api'
+    ]);
+});
+
 // Debug movies table
 Route::get('movies-debug', function () {
     try {
