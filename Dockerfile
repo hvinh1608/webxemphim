@@ -37,8 +37,11 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN cp .env.example .env || true
 RUN php artisan key:generate
 
+# Clear all Laravel caches
 RUN php artisan config:clear
 RUN php artisan route:clear
+RUN php artisan view:clear
+RUN php artisan cache:clear
 
 EXPOSE 80
 CMD ["apache2-foreground"]
