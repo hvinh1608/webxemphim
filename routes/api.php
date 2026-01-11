@@ -31,21 +31,41 @@ Route::get('test', function () {
     ]);
 });
 
+// Debug environment and Laravel setup
+Route::get('env-check', function () {
+    return response()->json([
+        'app_name' => config('app.name'),
+        'app_env' => config('app.env'),
+        'app_debug' => config('app.debug'),
+        'app_url' => config('app.url'),
+        'app_key' => config('app.key') ? 'SET (' . strlen(config('app.key')) . ' chars)' : 'NOT SET',
+        'db_connection' => config('database.default'),
+        'db_host' => config('database.connections.pgsql.host'),
+        'db_database' => config('database.connections.pgsql.database'),
+        'cache_driver' => config('cache.default'),
+        'session_driver' => config('session.driver'),
+        'log_channel' => config('logging.default'),
+        'php_version' => PHP_VERSION,
+        'laravel_version' => app()->version(),
+        'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'
+    ]);
+});
+
 // Debug database connection
 Route::get('db-test', function () {
     try {
-        // Test database connection
-        DB::connection()->getPdo();
+        // Test basic connection
+        $pdo = DB::connection()->getPdo();
         return response()->json([
             'database' => 'connected',
-            'connection' => config('database.default'),
-            'host' => config('database.connections.pgsql.host'),
-            'database_name' => config('database.connections.pgsql.database')
+            'pdo_driver' => $pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
+            'server_info' => $pdo->getAttribute(PDO::ATTR_SERVER_INFO)
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'database' => 'error',
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
+            'error_code' => $e->getCode()
         ], 500);
     }
 });
