@@ -50,7 +50,8 @@ RUN php artisan view:clear || true
 RUN php artisan cache:clear || true
 
 # Force database config to use environment variables
-RUN php artisan config:cache || true
+RUN php artisan config:clear || true
+RUN php artisan config:cache --force || true
 
 # Migrate database (ignore if database not ready)
 RUN php artisan migrate --force || true
