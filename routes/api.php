@@ -51,7 +51,7 @@ Route::get('env-check', function () {
     ]);
 });
 
-// Debug database connection
+// Debug database connection with detailed error
 Route::get('db-test', function () {
     try {
         // Test basic connection
@@ -59,13 +59,23 @@ Route::get('db-test', function () {
         return response()->json([
             'database' => 'connected',
             'pdo_driver' => $pdo->getAttribute(PDO::ATTR_DRIVER_NAME),
-            'server_info' => $pdo->getAttribute(PDO::ATTR_SERVER_INFO)
+            'server_info' => $pdo->getAttribute(PDO::ATTR_SERVER_INFO),
+            'client_version' => $pdo->getAttribute(PDO::ATTR_CLIENT_VERSION)
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'database' => 'error',
             'error' => $e->getMessage(),
-            'error_code' => $e->getCode()
+            'error_code' => $e->getCode(),
+            'db_config' => [
+                'connection' => config('database.default'),
+                'host' => config('database.connections.pgsql.host'),
+                'port' => config('database.connections.pgsql.port'),
+                'database' => config('database.connections.pgsql.database'),
+                'username' => config('database.connections.pgsql.username'),
+                'charset' => config('database.connections.pgsql.charset'),
+                'sslmode' => config('database.connections.pgsql.sslmode')
+            ]
         ], 500);
     }
 });
