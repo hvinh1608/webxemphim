@@ -60,11 +60,13 @@ RUN echo '#!/bin/bash' > /tmp/force-db-config.sh && \
 
 # Create startup script to force database config at runtime
 RUN echo '#!/bin/bash' > /usr/local/bin/force-db-config.sh && \
-    echo 'echo "Forcing database config..."' >> /usr/local/bin/force-db-config.sh && \
-    echo 'php artisan config:clear' >> /usr/local/bin/force-db-config.sh && \
-    echo 'php artisan config:cache' >> /usr/local/bin/force-db-config.sh && \
-    echo 'php artisan migrate --force || true' >> /usr/local/bin/force-db-config.sh && \
-    echo 'echo "Database config forced!"' >> /usr/local/bin/force-db-config.sh && \
+    echo 'echo "$(date): Starting force database config..." >> /tmp/db-config.log' >> /usr/local/bin/force-db-config.sh && \
+    echo 'cd /var/www/html' >> /usr/local/bin/force-db-config.sh && \
+    echo 'php artisan config:clear >> /tmp/db-config.log 2>&1' >> /usr/local/bin/force-db-config.sh && \
+    echo 'rm -f bootstrap/cache/config-*.php >> /tmp/db-config.log 2>&1' >> /usr/local/bin/force-db-config.sh && \
+    echo 'php artisan config:cache >> /tmp/db-config.log 2>&1' >> /usr/local/bin/force-db-config.sh && \
+    echo 'php artisan migrate --force >> /tmp/db-config.log 2>&1 || true' >> /usr/local/bin/force-db-config.sh && \
+    echo 'echo "$(date): Database config completed" >> /tmp/db-config.log' >> /usr/local/bin/force-db-config.sh && \
     chmod +x /usr/local/bin/force-db-config.sh
 
 EXPOSE 80

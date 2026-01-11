@@ -63,6 +63,16 @@ Route::get('debug-db', function () {
     ]);
 });
 
+// Check startup script log
+Route::get('debug-log', function () {
+    $logContent = file_exists('/tmp/db-config.log') ? file_get_contents('/tmp/db-config.log') : 'Log file not found';
+    return response()->json([
+        'log_exists' => file_exists('/tmp/db-config.log'),
+        'log_content' => $logContent,
+        'timestamp' => now()
+    ]);
+});
+
 // Debug database connection with detailed error
 Route::get('db-test', function () {
     try {
