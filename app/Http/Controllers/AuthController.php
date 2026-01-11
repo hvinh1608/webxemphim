@@ -56,7 +56,7 @@ class AuthController extends Controller
 
         // Gửi email reset password
         try {
-            $resetUrl = 'http://localhost:3000/reset-password?token=' . $resetToken;
+            $resetUrl = 'https://funny-naiad-a7116a.netlify.app/reset-password?token=' . $resetToken;
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\ResetPassword($user, $resetUrl));
         } catch (\Exception $e) {
             \Log::error('Failed to send reset password email: ' . $e->getMessage());
@@ -130,7 +130,8 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password, // setPasswordAttribute will hash
+            'email_verified_at' => now(), // Auto verify for simplicity
             'verification_token' => base64_encode(Str::random(48)), // URL-safe token
         ]);
 
@@ -244,7 +245,7 @@ class AuthController extends Controller
         }
 
         if ($user->email_verified_at) {
-            return redirect('http://localhost:3000/login?verification=already_verified');
+            return redirect('https://funny-naiad-a7116a.netlify.app/login?verification=already_verified');
         }
 
         $user->email_verified_at = now();
@@ -252,7 +253,7 @@ class AuthController extends Controller
         $user->save();
 
         // Redirect trực tiếp đến Vue app với thông báo thành công
-        return redirect('http://localhost:3000/login?verification=success');
+        return redirect('https://funny-naiad-a7116a.netlify.app/login?verification=success');
     }
 
     /**
@@ -260,7 +261,7 @@ class AuthController extends Controller
      */
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
     /**
@@ -268,7 +269,7 @@ class AuthController extends Controller
      */
     public function redirectToFacebook()
     {
-        return Socialite::driver('facebook')->redirect();
+        return Socialite::driver('facebook')->stateless()->redirect();
     }
 
     /**
@@ -279,7 +280,7 @@ class AuthController extends Controller
         \Log::info('Google OAuth callback received', ['url' => request()->fullUrl()]);
 
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')->stateless()->user();
 
             \Log::info('Google OAuth User:', [
                 'name' => $googleUser->getName(),
@@ -293,22 +294,33 @@ class AuthController extends Controller
             if ($user) {
                 // User đã tồn tại - kiểm tra loại user
                 if (!empty($user->oauth_provider)) {
-                    // User đã đăng ký bằng OAuth - cho phép login, cập nhật avatar nếu cần
-                    if (!$user->avatar && $googleUser->getAvatar()) {
-                        $user->update(['avatar' => $googleUser->getAvatar()]);
-                        \Log::info('Updated avatar for existing OAuth user:', ['user_id' => $user->id]);
-                    }
+                    // User đã đăng ký bằng OAuth - kiểm tra provider
+                    if ($user->oauth_provider === 'google') {
+                        // Cùng provider - cho phép login, cập nhật avatar nếu cần
+                        if (!$user->avatar && $googleUser->getAvatar()) {
+                            $user->update(['avatar' => $googleUser->getAvatar()]);
+                            \Log::info('Updated avatar for existing OAuth user:', ['user_id' => $user->id]);
+                        }
 
-                    \Log::info('Existing OAuth user login with Google:', ['user_id' => $user->id, 'email' => $user->email]);
-                    $token = $user->createToken('auth_token')->plainTextToken;
-                    \Log::info('Token created for existing OAuth user:', ['token' => $token]);
-                    return redirect('http://localhost:3000/login?google_success=1&token=' . urlencode($token));
+                        \Log::info('Existing Google OAuth user login:', ['user_id' => $user->id, 'email' => $user->email]);
+                        $token = $user->createToken('auth_token')->plainTextToken;
+                        \Log::info('Token created for existing OAuth user:', ['token' => $token]);
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?google_success=1&token=' . urlencode($token));
+                    } else {
+                        // Provider khác đã dùng email này - BLOCK
+                        \Log::warning('Google login blocked - email used by different provider:', [
+                            'email' => $user->email,
+                            'existing_provider' => $user->oauth_provider,
+                            'attempted_provider' => 'google'
+                        ]);
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?google_email_exists=1&email=' . urlencode($user->email));
+                    }
                 } else {
                     // User chỉ đăng ký bằng email/password - kiểm tra xem có thể link OAuth không
                     if (!empty($user->password)) {
                         // Có password - không cho phép link OAuth, phải login bằng password
                         \Log::warning('Google login attempt for email/password user:', ['email' => $user->email]);
-                        return redirect('http://localhost:3000/login?google_email_exists=1&email=' . urlencode($user->email));
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?google_email_exists=1&email=' . urlencode($user->email));
                     } else {
                         // Không có password và không có oauth_provider - có thể link OAuth
                         $user->update([
@@ -318,7 +330,7 @@ class AuthController extends Controller
                         ]);
                         \Log::info('Linked Google OAuth to existing user:', ['user_id' => $user->id]);
                         $token = $user->createToken('auth_token')->plainTextToken;
-                        return redirect('http://localhost:3000/login?google_success=1&token=' . urlencode($token));
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?google_success=1&token=' . urlencode($token));
                     }
                 }
             } else {
@@ -352,12 +364,12 @@ class AuthController extends Controller
                 $token = $user->createToken('auth_token')->plainTextToken;
                 \Log::info('Token created for new user:', ['token' => $token]);
 
-                return redirect('http://localhost:3000/login?google_success=1&token=' . urlencode($token) . '&new_user=1');
+                return redirect('https://funny-naiad-a7116a.netlify.app/login?google_success=1&token=' . urlencode($token) . '&new_user=1');
             }
         } catch (\Exception $e) {
             \Log::error('Google OAuth error: ' . $e->getMessage());
             \Log::error('Google OAuth error details:', ['exception' => $e]);
-            return redirect('http://localhost:3000/login?google_error=1');
+            return redirect('https://funny-naiad-a7116a.netlify.app/login?google_error=1');
         }
     }
 
@@ -369,7 +381,7 @@ class AuthController extends Controller
         \Log::info('Facebook OAuth callback STARTED', ['url' => request()->fullUrl(), 'all_params' => request()->all()]);
 
         try {
-            $facebookUser = Socialite::driver('facebook')->user();
+            $facebookUser = Socialite::driver('facebook')->stateless()->user();
 
             \Log::info('Facebook OAuth callback received', ['url' => request()->fullUrl()]);
             \Log::info('Facebook user data:', [
@@ -385,22 +397,33 @@ class AuthController extends Controller
             if ($user) {
                 // User đã tồn tại - kiểm tra loại user
                 if (!empty($user->oauth_provider)) {
-                    // User đã đăng ký bằng OAuth - cho phép login, cập nhật avatar nếu cần
-                    if (!$user->avatar && $facebookUser->getAvatar()) {
-                        $user->update(['avatar' => $facebookUser->getAvatar()]);
-                        \Log::info('Updated avatar for existing OAuth user:', ['user_id' => $user->id]);
-                    }
+                    // User đã đăng ký bằng OAuth - kiểm tra provider
+                    if ($user->oauth_provider === 'facebook') {
+                        // Cùng provider - cho phép login, cập nhật avatar nếu cần
+                        if (!$user->avatar && $facebookUser->getAvatar()) {
+                            $user->update(['avatar' => $facebookUser->getAvatar()]);
+                            \Log::info('Updated avatar for existing OAuth user:', ['user_id' => $user->id]);
+                        }
 
-                    \Log::info('Existing OAuth user login with Facebook:', ['user_id' => $user->id, 'email' => $user->email]);
-                    $token = $user->createToken('auth_token')->plainTextToken;
-                    \Log::info('Token created for existing OAuth user:', ['token' => $token]);
-                    return redirect('http://localhost:3000/login?facebook_success=1&token=' . urlencode($token));
+                        \Log::info('Existing Facebook OAuth user login:', ['user_id' => $user->id, 'email' => $user->email]);
+                        $token = $user->createToken('auth_token')->plainTextToken;
+                        \Log::info('Token created for existing OAuth user:', ['token' => $token]);
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_success=1&token=' . urlencode($token));
+                    } else {
+                        // Provider khác đã dùng email này - BLOCK
+                        \Log::warning('Facebook login blocked - email used by different provider:', [
+                            'email' => $user->email,
+                            'existing_provider' => $user->oauth_provider,
+                            'attempted_provider' => 'facebook'
+                        ]);
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_email_exists=1&email=' . urlencode($user->email));
+                    }
                 } else {
                     // User chỉ đăng ký bằng email/password - kiểm tra xem có thể link OAuth không
                     if (!empty($user->password)) {
                         // Có password - không cho phép link OAuth, phải login bằng password
                         \Log::warning('Facebook login attempt for email/password user:', ['email' => $user->email]);
-                        return redirect('http://localhost:3000/login?facebook_email_exists=1&email=' . urlencode($user->email));
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_email_exists=1&email=' . urlencode($user->email));
                     } else {
                         // Không có password và không có oauth_provider - có thể link OAuth
                         $user->update([
@@ -410,7 +433,7 @@ class AuthController extends Controller
                         ]);
                         \Log::info('Linked Facebook OAuth to existing user:', ['user_id' => $user->id]);
                         $token = $user->createToken('auth_token')->plainTextToken;
-                        return redirect('http://localhost:3000/login?facebook_success=1&token=' . urlencode($token));
+                        return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_success=1&token=' . urlencode($token));
                     }
                 }
             } else {
@@ -444,12 +467,12 @@ class AuthController extends Controller
                 $token = $user->createToken('auth_token')->plainTextToken;
                 \Log::info('Token created for new Facebook user:', ['token' => $token]);
 
-                return redirect('http://localhost:3000/login?facebook_success=1&new_user=1&token=' . urlencode($token));
+                return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_success=1&new_user=1&token=' . urlencode($token));
             }
         } catch (\Exception $e) {
             \Log::error('Facebook OAuth error: ' . $e->getMessage());
             \Log::error('Facebook OAuth error details:', ['exception' => $e]);
-            return redirect('http://localhost:3000/login?facebook_error=1');
+            return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_error=1');
         }
     }
 }

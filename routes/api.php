@@ -19,8 +19,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public routes
 Route::apiResource('movies', MovieController::class);
-Route::apiResource('episodes', EpisodeController::class);
+Route::apiResource('episodes', EpisodeController::class)->middleware('auth.api');
 Route::get('movies/{movie}/related', [MovieController::class, 'related']);
-Route::get('movies/{movie}/episodes', [MovieController::class, 'episodes']);
+Route::get('movies/{movie}/episodes', [MovieController::class, 'episodes'])->middleware('auth.api');
 Route::get('search', [MovieController::class, 'search']);
 Route::post('resend-verification', [AuthController::class, 'resendVerification']);
