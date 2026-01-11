@@ -17,6 +17,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'user']);
 });
 
+// Test route for debugging
+Route::get('test', function () {
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'Laravel API is working!',
+        'timestamp' => now(),
+        'php_version' => PHP_VERSION,
+        'laravel_version' => app()->version(),
+        'env' => config('app.env'),
+        'debug' => config('app.debug'),
+        'url' => config('app.url')
+    ]);
+});
+
 // Public routes
 Route::apiResource('movies', MovieController::class);
 Route::apiResource('episodes', EpisodeController::class)->middleware('auth.api');
