@@ -3,6 +3,15 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
+// Simple test route
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'OK',
+        'service' => 'WebXemPhim API',
+        'timestamp' => now()
+    ]);
+});
+
 Route::get('/', function () {
     return response()->json([
         'message' => 'WebXemPhim API Backend',
