@@ -35,8 +35,18 @@ COPY composer.json artisan ./
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Copy application code
-COPY . .
+# Copy application code explicitly
+COPY app/ ./app/
+COPY bootstrap/ ./bootstrap/
+COPY config/ ./config/
+COPY database/ ./database/
+COPY public/ ./public/
+COPY resources/ ./resources/
+COPY routes/ ./routes/
+COPY storage/ ./storage/
+COPY artisan ./
+COPY composer.json composer.lock ./
+COPY start.sh ./
 
 # Copy existing application directory permissions
 RUN chown -R www-data:www-data /var/www/html \
