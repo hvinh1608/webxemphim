@@ -31,6 +31,42 @@ Route::get('test', function () {
     ]);
 });
 
+// Debug database connection
+Route::get('db-test', function () {
+    try {
+        // Test database connection
+        DB::connection()->getPdo();
+        return response()->json([
+            'database' => 'connected',
+            'connection' => config('database.default'),
+            'host' => config('database.connections.pgsql.host'),
+            'database_name' => config('database.connections.pgsql.database')
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'database' => 'error',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// Debug movies table
+Route::get('movies-debug', function () {
+    try {
+        $count = DB::table('movies')->count();
+        $sample = DB::table('movies')->limit(3)->get();
+        return response()->json([
+            'movies_count' => $count,
+            'sample_movies' => $sample
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'movies_table_exists' => false
+        ], 500);
+    }
+});
+
 // Public routes
 Route::apiResource('movies', MovieController::class);
 Route::apiResource('episodes', EpisodeController::class)->middleware('auth.api');
