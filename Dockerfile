@@ -58,6 +58,29 @@ RUN echo '#!/bin/bash' > /tmp/force-db-config.sh && \
     echo 'php artisan migrate --force || true' >> /tmp/force-db-config.sh && \
     chmod +x /tmp/force-db-config.sh
 
+# Create custom database config to override SQLite
+RUN mkdir -p config && \
+    echo '<?php' > config/database.php && \
+    echo 'return [' >> config/database.php && \
+    echo '    "default" => env("DB_CONNECTION", "pgsql"),' >> config/database.php && \
+    echo '    "connections" => [' >> config/database.php && \
+    echo '        "pgsql" => [' >> config/database.php && \
+    echo '            "driver" => "pgsql",' >> config/database.php && \
+    echo '            "url" => env("DATABASE_URL"),' >> config/database.php && \
+    echo '            "host" => env("DB_HOST", "dpg-d5hlmji4d50c7395lbog-a"),' >> config/database.php && \
+    echo '            "port" => env("DB_PORT", "5432"),' >> config/database.php && \
+    echo '            "database" => env("DB_DATABASE", "webxemphim_prod"),' >> config/database.php && \
+    echo '            "username" => env("DB_USERNAME", "webxemphim_user"),' >> config/database.php && \
+    echo '            "password" => env("DB_PASSWORD", "127Z8yWQkucas8G4u0nuAFxVYqFmkPax"),' >> config/database.php && \
+    echo '            "charset" => "utf8",' >> config/database.php && \
+    echo '            "prefix" => "",' >> config/database.php && \
+    echo '            "prefix_indexes" => true,' >> config/database.php && \
+    echo '            "search_path" => "public",' >> config/database.php && \
+    echo '            "sslmode" => "require",' >> config/database.php && \
+    echo '        ],' >> config/database.php && \
+    echo '    ],' >> config/database.php && \
+    echo '];' >> config/database.php
+
 # Create startup script to force database config at runtime
 RUN echo '#!/bin/bash' > /usr/local/bin/force-db-config.sh && \
     echo 'echo "$(date): Starting force database config..." >> /tmp/db-config.log' >> /usr/local/bin/force-db-config.sh && \
