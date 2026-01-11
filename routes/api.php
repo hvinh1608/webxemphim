@@ -120,6 +120,23 @@ Route::get('web-test', function () {
     ]);
 });
 
+// Test Google OAuth config
+Route::get('test-google-config', function() {
+    try {
+        $config = config('services.google');
+        return response()->json([
+            'config_exists' => !empty($config),
+            'client_id_set' => !empty($config['client_id']),
+            'client_secret_set' => !empty($config['client_secret']),
+            'redirect_set' => !empty($config['redirect']),
+            'client_id_preview' => substr($config['client_id'] ?? '', 0, 20) . '...',
+            'redirect_url' => $config['redirect'] ?? null
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
+
 // Debug movies table
 Route::get('movies-debug', function () {
     try {
