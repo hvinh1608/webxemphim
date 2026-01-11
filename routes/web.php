@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Route;
 // Temporarily disable web routes - use API routes instead
 // All routes moved to routes/api.php for production
 
+
+// Đảm bảo callback Google dùng middleware web (bắt buộc cho Socialite)
+Route::get('/api/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
 // Simple fallback for any unmatched routes
 Route::fallback(function () {
     return response()->json([
