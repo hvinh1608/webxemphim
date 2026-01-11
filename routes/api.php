@@ -12,6 +12,12 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
+// OAuth routes (không cần auth)
+Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+Route::get('auth/facebook', [AuthController::class, 'redirectToFacebook']);
+Route::get('auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
+
 // Protected routes (cần auth)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
