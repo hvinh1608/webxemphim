@@ -7,7 +7,7 @@ Route::get('/', function () {
     return response()->json([
         'message' => 'WebXemPhim API Backend',
         'status' => 'running',
-        'version' => '1.0.0',
+        'version' => '1.0.1',
         'timestamp' => now()
     ]);
 });
