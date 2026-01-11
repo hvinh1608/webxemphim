@@ -33,15 +33,22 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-# ENV
-RUN cp .env.example .env || true
+# ENV - Force use production config
+RUN rm -f .env && \
+    echo "APP_NAME=WebXemPhim" > .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_KEY=base64:SG3hJzVxK2mPvFc8dGbNqRwY5tL7pM9eA1iOuHkT6s=" >> .env && \
+    echo "APP_URL=https://webxemphim.onrender.com" >> .env && \
+    echo "DB_CONNECTION=pgsql" >> .env
 RUN php artisan key:generate
 
-# Clear all Laravel caches (ignore errors if Laravel not fully set up)
+# Clear all Laravel caches and force reload config
 RUN php artisan config:clear || true
 RUN php artisan route:clear || true
 RUN php artisan view:clear || true
 RUN php artisan cache:clear || true
+RUN php artisan config:cache || true
 
 EXPOSE 80
 CMD ["apache2-foreground"]
