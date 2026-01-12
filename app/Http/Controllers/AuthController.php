@@ -279,7 +279,16 @@ class AuthController extends Controller
      */
     public function handleGoogleCallback()
     {
-        \Log::info('Google OAuth callback received', ['url' => request()->fullUrl()]);
+        \Log::info('Google OAuth callback received', ['url' => request()->fullUrl(), 'method' => request()->method()]);
+
+        // Test database connection first
+        try {
+            \DB::connection()->getPdo();
+            \Log::info('Database connection test passed');
+        } catch (\Exception $e) {
+            \Log::error('Database connection test failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Database connection failed'], 500);
+        }
 
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
