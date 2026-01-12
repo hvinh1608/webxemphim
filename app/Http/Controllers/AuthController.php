@@ -135,10 +135,12 @@ class AuthController extends Controller
             'verification_token' => base64_encode(Str::random(48)), // URL-safe token
         ]);
 
-        // Gửi email xác nhận
+        // Gửi email xác nhận (disabled in production for now)
         try {
-            $actionUrl = url('/verify?token=' . urlencode($user->verification_token));
-            Mail::to($user->email)->send(new VerifyEmail($user, $actionUrl));
+            // Temporarily disable email sending to avoid 500 errors
+            // $actionUrl = url('/verify?token=' . urlencode($user->verification_token));
+            // Mail::to($user->email)->send(new VerifyEmail($user, $actionUrl));
+            \Log::info('User registered successfully (email disabled): ' . $user->email);
         } catch (\Exception $e) {
             // Log error nhưng không fail registration
             \Log::error('Failed to send verification email: ' . $e->getMessage());
@@ -366,9 +368,13 @@ class AuthController extends Controller
 
                 return redirect('https://funny-naiad-a7116a.netlify.app/login?google_success=1&token=' . urlencode($token) . '&new_user=1');
             }
-        } catch (\Exception $e) {
-            \Log::error('Google OAuth error: ' . $e->getMessage());
-            \Log::error('Google OAuth error details:', ['exception' => $e]);
+        } catch (\Throwable $e) {
+            \Log::error('Google OAuth throwable: ' . $e->getMessage());
+            \Log::error('Trace: ' . $e->getTraceAsString());
+            // If request is HEAD, return 200 ok to avoid browser issues
+            if (strtoupper(request()->method()) === 'HEAD') {
+                return response('', 200);
+            }
             return redirect('https://funny-naiad-a7116a.netlify.app/login?google_error=1');
         }
     }
