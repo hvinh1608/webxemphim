@@ -161,3 +161,15 @@ Route::get('movies/{movie}/related', [MovieController::class, 'related']);
 Route::get('movies/{movie}/episodes', [MovieController::class, 'episodes'])->middleware('auth.api');
 Route::get('search', [MovieController::class, 'search']);
 Route::post('resend-verification', [AuthController::class, 'resendVerification']);
+// Temporary debug route to return last lines of laravel.log. REMOVE after use.
+Route::get('debug-last-log/{secret}', function ($secret) {
+    if ($secret !== env('LOG_DEBUG_SECRET')) {
+        return response()->json(['error' => 'Forbidden'], 403);
+    }
+    $path = storage_path('logs/laravel.log');
+    if (!file_exists($path)) {
+        return response()->json(['error' => 'Log not found'], 404);
+    }
+    $lines = array_slice(file($path), -500);
+    return response()->json(['tail' => implode('', $lines)]);
+});
