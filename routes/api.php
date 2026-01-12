@@ -13,6 +13,12 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
+// Test debug route
+Route::get('test-route-working', function () {
+    \Log::info('TEST ROUTE CALLED - API routes are working');
+    return response()->json(['message' => 'API routes are working', 'timestamp' => now()]);
+});
+
 // OAuth routes (không cần auth)
 Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
 
