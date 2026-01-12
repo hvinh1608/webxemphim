@@ -118,12 +118,27 @@ Route::get('test-db-connection', function () {
 // Simple test route without Socialite
 Route::get('debug/simple', function () {
     try {
+        // Create test user if it doesn't exist
+        $testUser = \App\Models\User::where('email', 'test@account.com')->first();
+        if (!$testUser) {
+            $testUser = \App\Models\User::create([
+                'name' => 'Test Account',
+                'email' => 'test@account.com',
+                'password' => 'test123456',
+                'email_verified_at' => now(),
+            ]);
+        }
+
         $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
         return response()->json([
             'status' => 'Simple route works',
             'timestamp' => now(),
             'users_count' => $users->count(),
-            'users' => $users
+            'users' => $users,
+            'test_credentials' => [
+                'email' => 'test@account.com',
+                'password' => 'test123456'
+            ]
         ]);
     } catch (\Exception $e) {
         return response()->json([
