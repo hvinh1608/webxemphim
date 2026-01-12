@@ -279,6 +279,7 @@ class AuthController extends Controller
      */
     public function handleGoogleCallback()
     {
+        \Log::info('GOOGLE CALLBACK METHOD REACHED - STARTING PROCESSING');
         \Log::info('Google OAuth callback received', ['url' => request()->fullUrl(), 'method' => request()->method()]);
 
         // Test database connection first
