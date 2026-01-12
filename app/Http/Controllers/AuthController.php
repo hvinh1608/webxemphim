@@ -127,13 +127,20 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password, // setPasswordAttribute will hash
-            'email_verified_at' => now(), // Auto verify for simplicity
-            'verification_token' => base64_encode(Str::random(48)), // URL-safe token
-        ]);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => $request->password, // setPasswordAttribute will hash
+                'email_verified_at' => now(), // Auto verify for simplicity
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('User creation failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể tạo tài khoản: ' . $e->getMessage()
+            ], 500);
+        }
 
         // Gửi email xác nhận (disabled in production for now)
         try {
