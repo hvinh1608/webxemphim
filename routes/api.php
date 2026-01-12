@@ -173,3 +173,28 @@ Route::get('debug-last-log/{secret}', function ($secret) {
     $lines = array_slice(file($path), -500);
     return response()->json(['tail' => implode('', $lines)]);
 });
+
+// Temporary maintenance route: clear config cache and remove bootstrap cache files.
+// REMOVE after use.
+Route::post('debug-clear-config/{secret}', function ($secret) {
+    if ($secret !== env('LOG_DEBUG_SECRET')) {
+        return response()->json(['error' => 'Forbidden'], 403);
+    }
+    try {
+        // Clear Laravel config cache and remove any cached files
+        \Artisan::call('config:clear');
+        @unlink(base_path('bootstrap/cache/config.php'));
+        foreach (glob(base_path('bootstrap/cache/config-*.php')) as $f) {
+            @unlink($f);
+        }
+        foreach (glob(base_path('bootstrap/cache/routes-*.php')) as $f) {
+            @unlink($f);
+        }
+        foreach (glob(storage_path('logs/*.log')) as $f) {
+            // do not delete logs; keep them
+        }
+        return response()->json(['status' => 'ok', 'message' => 'Config cleared and cache files removed.']);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
