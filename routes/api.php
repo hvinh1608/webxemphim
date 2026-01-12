@@ -23,7 +23,7 @@ Route::get('test-route-working', function () {
 Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
 
 // TEMP: Test if this route path is accessible
-Route::get('auth/google/callback', function () {
+Route::get('test-oauth-callback', function () {
     \Log::info('OAUTH CALLBACK ROUTE REACHED - testing route accessibility');
     return response()->json([
         'message' => 'OAuth callback route is accessible!',
