@@ -45,13 +45,26 @@ Route::get('create-test-user-final', function () {
     }
 });
 
-// Debug route to list users
-Route::get('list-users', function () {
+// Debug route to create test user
+Route::get('make-test-user', function () {
     try {
-        $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
+        // Create test user directly
+        \DB::table('users')->insert([
+            'name' => 'Final Test User',
+            'email' => 'finaltest@example.com',
+            'password' => bcrypt('finaltest123'),
+            'email_verified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         return response()->json([
             'success' => true,
-            'users' => $users
+            'message' => 'Test user created with raw SQL',
+            'credentials' => [
+                'email' => 'finaltest@example.com',
+                'password' => 'finaltest123'
+            ]
         ]);
     } catch (\Exception $e) {
         return response()->json([
