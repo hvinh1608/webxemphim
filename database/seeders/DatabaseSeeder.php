@@ -21,5 +21,13 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Create test user for API testing
+        User::create([
+            'name' => 'Test API User',
+            'email' => 'testapi@example.com',
+            'password' => 'password123',
+            'email_verified_at' => now(),
+        ]);
     }
 }

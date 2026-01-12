@@ -42,6 +42,24 @@ Route::get('createtest', function () {
     }
 });
 
+// Debug route to run seeder
+Route::get('run-seeder', function () {
+    try {
+        \Artisan::call('db:seed', ['--class' => 'DatabaseSeeder']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Seeder run successfully',
+            'output' => \Artisan::output()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
 // OAuth routes (không cần auth)
 Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
 
