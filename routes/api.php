@@ -5,6 +5,7 @@ use App\Http\Controllers\EpisodeController;
 use App\Http\Controllers\MovieController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Laravel\Socialite\Facades\Socialite;
 
 // Auth routes (không cần auth)
 Route::post('register', [AuthController::class, 'register']);
