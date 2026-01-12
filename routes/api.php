@@ -81,15 +81,8 @@ Route::get('debug/simple', function () {
     ]);
 });
 
-// TEMP: Test OAuth callback accessibility
-Route::get('test-oauth-callback', function () {
-    \Log::info('OAUTH CALLBACK ROUTE REACHED - testing route accessibility');
-    return response()->json([
-        'message' => 'OAuth callback route is accessible!',
-        'timestamp' => now(),
-        'route_working' => true
-    ]);
-});
+// OAuth callback route
+Route::get('auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
 Route::get('auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
