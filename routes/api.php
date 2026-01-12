@@ -21,7 +21,16 @@ Route::get('test-route-working', function () {
 
 // OAuth routes (không cần auth)
 Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
-Route::get('auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
+// TEMP: Test if this route path is accessible
+Route::get('auth/google/callback', function () {
+    \Log::info('OAUTH CALLBACK ROUTE REACHED - testing route accessibility');
+    return response()->json([
+        'message' => 'OAuth callback route is accessible!',
+        'timestamp' => now(),
+        'route_working' => true
+    ]);
+});
 
 // Debug route for OAuth
 Route::get('debug/oauth', function () {
