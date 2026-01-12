@@ -291,16 +291,33 @@ class AuthController extends Controller
         }
 
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            \Log::info('About to create Socialite driver');
+            $driver = Socialite::driver('google');
+            \Log::info('Socialite driver created successfully');
+
+            \Log::info('About to call stateless()->user()');
+            $googleUser = $driver->stateless()->user();
+            \Log::info('Socialite user() call successful');
 
             \Log::info('Google OAuth User:', [
                 'name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
-                'id' => $googleUser->getId()
+                'id' => $googleUser->getId(),
+                'has_name' => !empty($googleUser->getName()),
+                'has_email' => !empty($googleUser->getEmail()),
+                'has_id' => !empty($googleUser->getId())
             ]);
 
+            // Validate user data
+            if (empty($googleUser->getEmail())) {
+                \Log::error('Google user missing email');
+                return redirect('https://funny-naiad-a7116a.netlify.app/login?google_error=1');
+            }
+
+            \Log::info('About to query database for user');
             // Tìm user theo email từ Google
             $user = User::where('email', $googleUser->getEmail())->first();
+            \Log::info('Database query completed', ['user_found' => !is_null($user)]);
 
             if ($user) {
                 // User đã tồn tại - kiểm tra loại user
