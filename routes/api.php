@@ -31,21 +31,20 @@ Route::get('debug/oauth', function () {
 // Debug route for OAuth callback
 Route::get('debug/oauth-callback', function () {
     try {
-        \Log::info('Testing OAuth callback debug route');
-        // Test database connection
-        \DB::connection()->getPdo();
-        \Log::info('Database connection test passed in debug route');
-
+        // Test database connection (same as db-test)
+        $pdo = \DB::connection()->getPdo();
         return response()->json([
-            'status' => 'Basic tests passed',
-            'database' => 'connected',
+            'status' => 'SUCCESS',
+            'message' => 'OAuth callback debug - Database connected!',
+            'pdo_driver' => $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME),
             'timestamp' => now()
         ]);
     } catch (\Exception $e) {
-        \Log::error('Debug OAuth callback error: ' . $e->getMessage());
         return response()->json([
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'status' => 'ERROR',
+            'error_message' => $e->getMessage(),
+            'error_code' => $e->getCode(),
+            'timestamp' => now()
         ], 500);
     }
 });
