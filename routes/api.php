@@ -19,25 +19,28 @@ Route::get('test-route-working', function () {
     return response()->json(['message' => 'API routes are working', 'timestamp' => now()]);
 });
 
-// Debug route to create test user
-Route::get('createtest', function () {
+// Debug route to create test user with known password
+Route::get('create-test-user-final', function () {
     try {
         $user = \App\Models\User::create([
-            'name' => 'testuser456',
-            'email' => 'testuser456@example.com',
-            'password' => 'password123',
+            'name' => 'Test Account',
+            'email' => 'test@account.com',
+            'password' => 'test123456',
             'email_verified_at' => now(),
         ]);
         return response()->json([
             'success' => true,
-            'message' => 'Test user created',
-            'user' => $user
+            'message' => 'Test user created successfully!',
+            'user' => $user,
+            'login_credentials' => [
+                'email' => 'test@account.com',
+                'password' => 'test123456'
+            ]
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'error' => $e->getMessage()
         ], 500);
     }
 });
