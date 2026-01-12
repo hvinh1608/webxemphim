@@ -131,23 +131,15 @@ Route::get('test-db-connection', function () {
 // Simple test route without Socialite
 Route::get('debug/simple', function () {
     try {
-        // Update existing user's password and verify email
-        $user = \App\Models\User::where('email', 'hvinh.job@gmail.com')->first();
-        if ($user) {
-            $user->password = 'testpassword123';
-            $user->email_verified_at = now();
-            $user->save();
-        }
-
         $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
         return response()->json([
             'status' => 'Simple route works',
             'timestamp' => now(),
             'users_count' => $users->count(),
             'users' => $users,
-            'updated_credentials' => [
+            'available_credentials' => [
                 'email' => 'hvinh.job@gmail.com',
-                'password' => 'testpassword123'
+                'note' => 'Try password: testpassword123 (may need to update via raw SQL)'
             ]
         ]);
     } catch (\Exception $e) {
@@ -155,6 +147,33 @@ Route::get('debug/simple', function () {
             'status' => 'Error',
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Debug route to update password with raw SQL
+Route::get('fix-password', function () {
+    try {
+        \DB::table('users')
+            ->where('email', 'hvinh.job@gmail.com')
+            ->update([
+                'password' => bcrypt('testpassword123'),
+                'email_verified_at' => now(),
+                'updated_at' => now()
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated to: testpassword123',
+            'test_login' => [
+                'email' => 'hvinh.job@gmail.com',
+                'password' => 'testpassword123'
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
         ], 500);
     }
 });
