@@ -198,3 +198,22 @@ Route::post('debug-clear-config/{secret}', function ($secret) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
 });
+
+// Temporary debug route to list cache files (storage/framework/cache/data)
+Route::get('list-cache-files/{secret}', function ($secret) {
+    if ($secret !== env('LOG_DEBUG_SECRET')) {
+        return response()->json(['error' => 'Forbidden'], 403);
+    }
+    $dir = storage_path('framework/cache/data');
+    if (!is_dir($dir)) {
+        return response()->json(['error' => 'Cache dir not found', 'path' => $dir], 404);
+    }
+    $files = [];
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+    foreach ($it as $file) {
+        if ($file->isFile()) {
+            $files[] = str_replace(base_path() . DIRECTORY_SEPARATOR, '', $file->getPathname());
+        }
+    }
+    return response()->json(['files' => $files]);
+});
