@@ -131,15 +131,24 @@ Route::get('test-db-connection', function () {
 // Simple test route without Socialite
 Route::get('debug/simple', function () {
     try {
+        // Update password for existing user
+        \DB::table('users')
+            ->where('email', 'hvinh.job@gmail.com')
+            ->update([
+                'password' => bcrypt('testpassword123'),
+                'email_verified_at' => now(),
+                'updated_at' => now()
+            ]);
+
         $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
         return response()->json([
-            'status' => 'Simple route works',
+            'status' => 'Simple route works - Password updated!',
             'timestamp' => now(),
             'users_count' => $users->count(),
             'users' => $users,
-            'available_credentials' => [
+            'test_credentials' => [
                 'email' => 'hvinh.job@gmail.com',
-                'note' => 'Try password: testpassword123 (may need to update via raw SQL)'
+                'password' => 'testpassword123'
             ]
         ]);
     } catch (\Exception $e) {
