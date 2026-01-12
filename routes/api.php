@@ -19,6 +19,29 @@ Route::get('test-route-working', function () {
     return response()->json(['message' => 'API routes are working', 'timestamp' => now()]);
 });
 
+// Debug route to create test user
+Route::get('create-test-user', function () {
+    try {
+        $user = \App\Models\User::create([
+            'name' => 'testuser456',
+            'email' => 'testuser456@example.com',
+            'password' => 'password123',
+            'email_verified_at' => now(),
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Test user created',
+            'user' => $user
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
 // OAuth routes (không cần auth)
 Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
 
