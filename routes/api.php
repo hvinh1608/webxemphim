@@ -114,10 +114,20 @@ Route::get('test-db-connection', function () {
 
 // Simple test route without Socialite
 Route::get('debug/simple', function () {
-    return response()->json([
-        'status' => 'Simple route works',
-        'timestamp' => now()
-    ]);
+    try {
+        $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
+        return response()->json([
+            'status' => 'Simple route works',
+            'timestamp' => now(),
+            'users_count' => $users->count(),
+            'users' => $users
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'Error',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });
 
 // OAuth callback route
