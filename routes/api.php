@@ -49,6 +49,25 @@ Route::get('debug/oauth-callback', function () {
     }
 });
 
+// Test route with different name
+Route::get('test-db-connection', function () {
+    try {
+        $pdo = \DB::connection()->getPdo();
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'Test DB connection works!',
+            'pdo_driver' => $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME),
+            'timestamp' => now()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'ERROR',
+            'error_message' => $e->getMessage(),
+            'timestamp' => now()
+        ], 500);
+    }
+});
+
 // Simple test route without Socialite
 Route::get('debug/simple', function () {
     return response()->json([
