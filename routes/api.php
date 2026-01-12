@@ -53,6 +53,34 @@ Route::get('create-test-user-final', function () {
     }
 });
 
+// Debug route to create user with raw SQL
+Route::get('create-sql-user', function () {
+    try {
+        \DB::table('users')->insert([
+            'name' => 'SQL User',
+            'email' => 'sqluser@example.com',
+            'password' => bcrypt('sqluser123'),
+            'email_verified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created with raw SQL',
+            'credentials' => [
+                'email' => 'sqluser@example.com',
+                'password' => 'sqluser123'
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Debug route to create test user
 Route::get('make-test-user', function () {
     try {
