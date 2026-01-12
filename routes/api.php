@@ -27,6 +27,32 @@ Route::get('debug/oauth', function () {
         return response()->json(['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
     }
 });
+
+// Debug route for OAuth callback
+Route::get('debug/oauth-callback', function () {
+    try {
+        \Log::info('Testing OAuth callback debug route');
+        // Test database connection
+        \DB::connection()->getPdo();
+        \Log::info('Database connection test passed in debug route');
+
+        // Test Socialite driver instantiation
+        $driver = Socialite::driver('google');
+        \Log::info('Socialite driver created successfully in debug route');
+
+        return response()->json([
+            'status' => 'All tests passed',
+            'database' => 'connected',
+            'socialite' => 'driver created'
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Debug OAuth callback error: ' . $e->getMessage());
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
 Route::get('auth/facebook', [AuthController::class, 'redirectToFacebook']);
 Route::get('auth/facebook/callback', [AuthController::class, 'handleFacebookCallback']);
 
