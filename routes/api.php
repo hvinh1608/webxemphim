@@ -15,7 +15,7 @@ Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
 // OAuth routes (không cần auth)
 Route::get('auth/google', [AuthController::class, 'redirectToGoogle']);
-Route::get('auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+// OAuth callback moved to web.php for Socialite session requirements
 
 // Debug route for OAuth
 Route::get('debug/oauth', function () {
