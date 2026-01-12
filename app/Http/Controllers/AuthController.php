@@ -482,9 +482,3 @@ class AuthController extends Controller
         }
     }
 }
-
-            \Log::error('Facebook OAuth error details:', ['exception' => $e]);
-            return redirect('https://funny-naiad-a7116a.netlify.app/login?facebook_error=1');
-        }
-    }
-}
