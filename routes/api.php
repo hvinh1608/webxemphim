@@ -20,7 +20,7 @@ Route::get('test-route-working', function () {
 });
 
 // Debug route to create test user
-Route::get('create-test-user', function () {
+Route::get('createtest', function () {
     try {
         $user = \App\Models\User::create([
             'name' => 'testuser456',
