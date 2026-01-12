@@ -131,16 +131,12 @@ Route::get('test-db-connection', function () {
 // Simple test route without Socialite
 Route::get('debug/simple', function () {
     try {
-        // Always try to create test user (will fail if exists)
-        try {
-            $testUser = \App\Models\User::create([
-                'name' => 'Test Account',
-                'email' => 'test@account.com',
-                'password' => 'test123456',
-                'email_verified_at' => now(),
-            ]);
-        } catch (\Exception $e) {
-            // User might already exist, ignore
+        // Update existing user's password and verify email
+        $user = \App\Models\User::where('email', 'hvinh.job@gmail.com')->first();
+        if ($user) {
+            $user->password = 'testpassword123';
+            $user->email_verified_at = now();
+            $user->save();
         }
 
         $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
@@ -149,9 +145,9 @@ Route::get('debug/simple', function () {
             'timestamp' => now(),
             'users_count' => $users->count(),
             'users' => $users,
-            'test_credentials' => [
-                'email' => 'test@account.com',
-                'password' => 'test123456'
+            'updated_credentials' => [
+                'email' => 'hvinh.job@gmail.com',
+                'password' => 'testpassword123'
             ]
         ]);
     } catch (\Exception $e) {
