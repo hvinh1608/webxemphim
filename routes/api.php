@@ -42,20 +42,18 @@ Route::get('createtest', function () {
     }
 });
 
-// Debug route to run seeder
-Route::get('run-seeder', function () {
+// Debug route to list users
+Route::get('list-users', function () {
     try {
-        \Artisan::call('db:seed', ['--class' => 'DatabaseSeeder']);
+        $users = \App\Models\User::all(['id', 'name', 'email', 'email_verified_at']);
         return response()->json([
             'success' => true,
-            'message' => 'Seeder run successfully',
-            'output' => \Artisan::output()
+            'users' => $users
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'error' => $e->getMessage()
         ], 500);
     }
 });
