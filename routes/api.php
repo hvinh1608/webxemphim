@@ -9,6 +9,14 @@ use Laravel\Socialite\Facades\Socialite;
 
 // Auth routes (không cần auth)
 Route::post('register', [AuthController::class, 'register']);
+Route::get('test-register', function() {
+    try {
+        \Log::info('Test register route called');
+        return response()->json(['message' => 'Register route accessible']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
 Route::post('login', [AuthController::class, 'login']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('reset-password', [AuthController::class, 'resetPassword']);
