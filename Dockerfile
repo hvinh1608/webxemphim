@@ -42,8 +42,17 @@ RUN php artisan route:clear || true
 RUN php artisan view:clear || true
 RUN php artisan cache:clear || true
 
-EXPOSE 80
+# Create startup script to force config regeneration at runtime
+RUN echo '#!/bin/bash' > /usr/local/bin/start-app.sh && \
+    echo 'cd /var/www/html' >> /usr/local/bin/start-app.sh && \
+    echo 'echo "Starting application..."' >> /usr/local/bin/start-app.sh && \
+    echo 'php artisan config:clear' >> /usr/local/bin/start-app.sh && \
+    echo 'php artisan config:cache' >> /usr/local/bin/start-app.sh && \
+    echo 'php artisan route:clear' >> /usr/local/bin/start-app.sh && \
+    echo 'php artisan route:cache' >> /usr/local/bin/start-app.sh && \
+    echo 'echo "Config regenerated, starting Apache..."' >> /usr/local/bin/start-app.sh && \
+    echo 'apache2-foreground' >> /usr/local/bin/start-app.sh && \
+    chmod +x /usr/local/bin/start-app.sh
 
-# Run database config script before starting Apache
 EXPOSE 80
-CMD ["apache2-foreground"]
+CMD ["/usr/local/bin/start-app.sh"]
